@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Look How Far Board: Lesson 6 revision game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,900,100&display=swap">
+<style>
+:root{
+  --green:#1E5B45; --dgreen:#143F30; --mid:#4F7F6A; --ochre:#D4A12A; --otext:#7A5A12;
+  --wash:#E7EFEA; --tint:#F3F7F4; --owash:#FAF3E1; --ink:#26302C; --white:#FFFFFF; --wrong:#B5503C; --wrongwash:#F6E3DE;
+  --head:"Cooper Black","Cooper Std","Fraunces",Georgia,serif;
+  --body:"Trebuchet MS","Segoe UI",Tahoma,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--body);color:var(--ink);background:var(--white);font-size:20px;line-height:1.4}
+h1,h2,h3,.head{font-family:var(--head);font-weight:900;font-variation-settings:"SOFT" 100;letter-spacing:0;margin:0}
+button{font-family:var(--body);font-size:inherit;cursor:pointer;border:0;color:inherit}
+button:focus-visible{outline:4px solid var(--ochre);outline-offset:3px}
+.hidden{display:none!important}
+svg{display:block}
+
+/* route motif */
+.route{position:relative;height:56px}
+.route .line{position:absolute;left:14px;right:14px;top:50%;height:6px;margin-top:-3px;background:var(--ochre);border-radius:3px}
+.route .dots{position:absolute;left:0;right:0;top:50%;display:flex;justify-content:space-between;transform:translateY(-50%)}
+.route .dot{width:28px;height:28px;border-radius:50%;background:var(--dgreen);border:4px solid var(--ochre)}
+.route .dot.done{background:var(--ochre)}
+.route .bus{position:absolute;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:var(--ochre);color:var(--dgreen);
+  display:grid;place-items:center;font-size:28px;left:28px;transition:left .9s cubic-bezier(.5,0,.3,1)}
+@media (prefers-reduced-motion:reduce){.route .bus{transition:none}}
+
+/* setup */
+#setup{min-height:100%;background:var(--dgreen);color:var(--white);display:flex;flex-direction:column;align-items:center;padding:40px 24px 48px;gap:26px}
+#setup .tag{background:var(--ochre);color:var(--ink);font-weight:bold;padding:6px 18px;border-radius:8px;font-size:18px}
+#setup h1{font-size:clamp(40px,6vw,76px);text-align:center;line-height:1.05}
+#setup .sub{color:var(--owash);font-size:24px;text-align:center;margin-top:-10px}
+#setup .route{width:min(900px,90vw)}
+.panel{background:var(--white);color:var(--ink);border-radius:18px;padding:26px 30px;width:min(900px,94vw)}
+.panel h2{color:var(--green);font-size:32px;margin-bottom:16px}
+.who{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.who button{background:var(--wash);border-radius:14px;padding:16px 8px;font-weight:bold;font-size:22px;color:var(--green);border:3px solid transparent}
+.who button[aria-pressed="true"]{background:var(--green);color:var(--white)}
+.names{margin-top:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.names .hint{width:100%;color:var(--mid);font-size:18px}
+.names button{background:var(--owash);color:var(--otext);border-radius:12px;padding:12px 18px;font-weight:bold;font-size:22px;display:flex;gap:10px;align-items:center}
+.tname{display:flex;align-items:center;gap:8px;background:var(--owash);border-radius:12px;padding:8px 10px}
+.tname .n{background:var(--ochre);color:var(--white);width:30px;height:30px;border-radius:6px;display:grid;place-items:center;font-size:18px;font-weight:bold;flex:none}
+.tname input{font-family:var(--body);font-size:22px;font-weight:bold;color:var(--otext);border:2px solid #EADFC2;border-radius:8px;padding:6px 10px;width:210px;background:var(--white)}
+.tname input:focus-visible{outline:4px solid var(--ochre);outline-offset:2px}
+.tname .pickn{background:var(--white);color:var(--otext);border-radius:8px;padding:6px 10px;font-size:16px;font-weight:bold;border:2px solid #EADFC2}
+.setrow{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.setrow .lab{font-weight:bold;color:var(--green);font-size:22px;margin-right:6px}
+.chip{background:var(--wash);color:var(--green);border-radius:30px;padding:10px 18px;font-weight:bold;font-size:20px}
+.chip[aria-pressed="true"]{background:var(--green);color:var(--white)}
+.names button .n{background:var(--ochre);color:var(--white);width:30px;height:30px;border-radius:6px;display:grid;place-items:center;font-size:18px}
+.go{margin-top:22px;background:var(--ochre);color:var(--ink);font-family:var(--head);font-weight:900;font-variation-settings:"SOFT" 100;font-size:34px;padding:14px 46px;border-radius:40px;display:inline-flex;gap:14px;align-items:center}
+.go svg{font-size:30px}
+
+/* board */
+#board{min-height:100%;display:flex;flex-direction:column}
+.top{background:var(--dgreen);color:var(--white);display:grid;grid-template-columns:auto 1fr auto;gap:28px;align-items:center;padding:14px 26px}
+.top h2{font-size:34px;white-space:nowrap}
+.top .route{min-width:200px}
+.tools{display:flex;gap:10px}
+.tools button{background:transparent;color:var(--white);border:2px solid var(--mid);border-radius:12px;padding:8px 16px;font-weight:bold;font-size:19px;display:flex;gap:8px;align-items:center}
+.tools button.main{background:var(--ochre);border-color:var(--ochre);color:var(--ink)}
+.grid{flex:1;display:grid;grid-template-columns:repeat(5,1fr);grid-auto-rows:minmax(72px,1fr);gap:12px;padding:18px 26px}
+.cat{background:var(--wash);color:var(--green);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px;gap:6px}
+.cat h3{font-size:clamp(20px,2vw,28px);line-height:1.1}
+.cat .ic{display:flex;gap:6px}
+.badge{width:34px;height:34px;border-radius:50%;background:var(--green);color:var(--white);display:grid;place-items:center;font-size:18px}
+.tile{background:var(--green);color:var(--white);border-radius:14px;font-family:var(--head);font-weight:900;font-variation-settings:"SOFT" 100;font-size:clamp(30px,3.4vw,50px);display:grid;place-items:center;transition:background .15s}
+.tile:hover:not(:disabled){background:var(--dgreen)}
+.tile:disabled{background:var(--tint);color:var(--mid);cursor:default;font-size:30px}
+.scores{display:flex;gap:14px;padding:0 26px 20px;flex-wrap:wrap}
+.team{flex:1;min-width:200px;background:var(--tint);border-radius:16px;padding:12px 18px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 12px;border:4px solid transparent}
+.team.turn{background:var(--owash);border-color:var(--ochre)}
+.team .nm{font-weight:bold;font-size:22px;display:flex;gap:10px;align-items:center}
+.team .nm .bus{width:34px;height:34px;border-radius:50%;background:var(--ochre);color:var(--dgreen);display:grid;place-items:center;font-size:18px;visibility:hidden}
+.team.turn .nm .bus{visibility:visible}
+.team .pts{font-family:var(--head);font-weight:900;font-variation-settings:"SOFT" 100;font-size:40px;color:var(--green);grid-row:span 2;text-align:right}
+.team .adj{display:flex;gap:8px}
+.team .adj button{background:var(--white);border:2px solid var(--wash);border-radius:10px;width:46px;height:38px;font-weight:bold;font-size:20px;color:var(--green)}
+.stepbar{display:flex;align-items:center;gap:10px;padding:0 26px 8px;color:var(--mid);font-size:18px;font-weight:bold}
+.stepbar .chip{padding:6px 14px;font-size:18px}
+.team .adj button{min-width:46px;width:auto;padding:0 10px}
+.timer{display:flex;align-items:center;gap:10px;background:var(--tint);border-radius:40px;padding:6px 8px 6px 18px}
+.timer .t{font-family:var(--head);font-weight:900;font-variation-settings:"SOFT" 100;font-size:34px;color:var(--green);min-width:70px;text-align:center}
+.timer.low .t{color:var(--wrong)}
+.timer.up{background:var(--wrongwash)}
+.timer button{background:var(--white);color:var(--green);border-radius:30px;padding:6px 12px;font-weight:bold;font-size:18px;display:flex;align-items:center;gap:6px;border:2px solid var(--wash)}
+.timer .bar{width:120px;height:10px;border-radius:5px;background:var(--wash);overflow:hidden}
+.timer .bar i{display:block;height:100%;background:var(--green);width:100%}
+.timer.low .bar i{background:var(--wrong)}
+.award{margin-top:16px;background:var(--owash);border-radius:14px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.award .lab{font-weight:bold;color:var(--otext);font-size:19px;width:100%}
+.award .aw{display:flex;align-items:center;gap:8px;background:var(--white);border-radius:12px;padding:6px 10px;font-weight:bold}
+.award .aw button{background:var(--wash);color:var(--green);border-radius:8px;padding:4px 10px;font-weight:bold;font-size:18px}
+.team .line2{font-size:18px;color:var(--mid)}
+
+/* overlays */
+.overlay{position:fixed;inset:0;background:rgba(20,63,48,.86);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
+.card{background:var(--white);border-radius:22px;width:min(1100px,100%);max-height:100%;overflow:auto;padding:28px 34px}
+.chead{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.chead .lbl{background:var(--wash);color:var(--green);font-weight:bold;border-radius:10px;padding:6px 14px;font-size:20px}
+.chead .val{font-family:var(--head);font-weight:900;font-variation-settings:"SOFT" 100;color:var(--green);font-size:32px}
+.chead .sp{flex:1}
+.bonus{background:var(--ochre);color:var(--ink);border-radius:14px;padding:12px 18px;display:flex;align-items:center;gap:14px;font-weight:bold;font-size:24px;margin-bottom:16px}
+.bonus .bi{width:48px;height:48px;border-radius:50%;background:var(--dgreen);color:var(--ochre);display:grid;place-items:center;font-size:26px}
+.q{font-size:clamp(26px,2.6vw,38px);font-weight:bold;line-height:1.3;margin:6px 0 20px}
+.words{background:var(--tint);border-radius:14px;padding:14px 20px;font-style:italic;font-size:clamp(22px,2.2vw,30px);margin-bottom:12px}
+.snip{background:var(--owash);border-radius:14px;padding:14px 18px;margin-bottom:16px;font-size:18px}
+.snip h4{font-family:var(--head);font-weight:900;font-variation-settings:"SOFT" 100;color:var(--otext);font-size:24px;margin:0 0 8px}
+.snip table{border-collapse:collapse;width:100%;background:var(--white)}
+.snip th,.snip td{padding:5px 10px;text-align:left;border-bottom:1px solid #EADFC2}
+.snip th{background:var(--ochre);color:var(--ink)}
+.snip .wrap{overflow-x:auto}
+.snip p{margin:8px 0 0}
+.opts{display:grid;gap:12px}
+.opt{display:flex;align-items:center;gap:16px;text-align:left;background:var(--tint);border:3px solid var(--wash);border-radius:16px;padding:14px 18px;font-size:clamp(22px,2.1vw,30px);font-weight:bold}
+.opt .k{flex:none;width:46px;height:46px;background:var(--green);color:var(--white);display:grid;place-items:center;font-family:var(--head);font-weight:900;font-variation-settings:"SOFT" 100;font-size:26px}
+.opt:hover:not(:disabled){border-color:var(--mid)}
+.opt:disabled{cursor:default}
+.opt.right{background:var(--green);border-color:var(--green);color:var(--white)}
+.opt.right .k{background:var(--white);color:var(--green)}
+.opt.wrong{background:var(--wrongwash);border-color:var(--wrong);color:var(--wrong)}
+.opt.wrong .k{background:var(--wrong)}
+.opt.dim{opacity:.55}
+.cfoot{display:flex;align-items:center;gap:16px;margin-top:20px;flex-wrap:wrap}
+.cfoot .fb{flex:1;font-size:24px;font-weight:bold}
+.fb.good{color:var(--green)} .fb.bad{color:var(--wrong)}
+.btn{background:var(--wash);color:var(--green);border-radius:40px;padding:12px 26px;font-weight:bold;font-size:22px}
+.btn.main{background:var(--ochre);color:var(--ink)}
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0 18px}
+.note{background:var(--tint);border-radius:14px;padding:14px 18px}
+.note h4{margin:0 0 6px;color:var(--green);font-size:22px}
+.note p{margin:4px 0;font-size:19px}
+.big h2{font-size:clamp(34px,4vw,54px);color:var(--green);margin-bottom:10px}
+.rank{display:grid;gap:12px;margin:16px 0}
+.rank div{display:flex;align-items:center;gap:16px;background:var(--tint);border-radius:14px;padding:12px 18px;font-size:24px;font-weight:bold}
+.rank div.win{background:var(--owash);border:4px solid var(--ochre)}
+.rank .p{margin-left:auto;font-family:var(--head);font-weight:900;font-variation-settings:"SOFT" 100;color:var(--green);font-size:34px}
+.rank .bi{width:46px;height:46px;border-radius:50%;background:var(--ochre);color:var(--dgreen);display:grid;place-items:center;font-size:22px}
+.stat{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0}
+.stat div{flex:1;min-width:160px;background:var(--wash);border-radius:14px;padding:14px;text-align:center}
+.stat b{display:block;font-family:var(--head);font-weight:900;font-variation-settings:"SOFT" 100;color:var(--green);font-size:44px}
+@media (max-width:820px){
+  .who{grid-template-columns:1fr 1fr}
+  .top{grid-template-columns:1fr;gap:10px}
+  .tools{flex-wrap:wrap} .top h2{white-space:normal} .team{min-width:100%}
+  .chead{flex-wrap:wrap} .timer{flex-wrap:wrap;border-radius:20px;max-width:100%} .timer .bar{width:80px}
+  .card{padding:18px 16px} .scores{padding:0 10px 14px} .stepbar{flex-wrap:wrap;padding:0 10px 8px}
+  .setrow{flex-wrap:wrap} .who{gap:8px}
+  .tname{flex-wrap:wrap} .tname input{min-width:0;flex:1 1 140px} .pickn{flex:0 0 auto}
+  .grid{gap:6px;padding:10px;grid-auto-rows:minmax(58px,1fr)}
+  .cat h3{font-size:15px;overflow-wrap:anywhere;hyphens:auto} .tile{font-size:22px}
+  .grid{grid-template-columns:repeat(5,minmax(0,1fr))} .cat{min-width:0;padding:6px 3px} .cat .badge{width:24px;height:24px;font-size:13px}
+  .notes{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<section id="setup">
+  <div class="tag">VU23562</div>
+  <h1 id="gTitle"></h1>
+  <div class="sub" id="gSub"></div>
+  <div class="route" id="setupRoute"></div>
+  <div class="panel">
+    <h2>Who is playing?</h2>
+    <div class="who" id="who"></div>
+    <div class="names" id="names"></div>
+    <div class="setrow" id="timerRow"></div>
+    <div style="text-align:center"><button class="go" id="start"><span id="goIc"></span>Let's go!</button></div>
+  </div>
+</section>
+
+<section id="board" class="hidden">
+  <div class="top">
+    <h2 id="roundName">Round 1</h2>
+    <div class="route" id="boardRoute"></div>
+    <div class="tools">
+      <button id="timerBtn">Timer: off</button>
+      <button id="notesBtn"><span data-ic="FaBookOpen"></span>Notes</button>
+      <button id="nextBtn" class="main">Double board</button>
+      <button id="finishBtn">Finish</button>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="stepbar" id="stepbar"></div>
+  <div class="scores" id="scores"></div>
+</section>
+
+<div class="overlay hidden" id="clue" role="dialog" aria-modal="true" aria-labelledby="qText">
+  <div class="card">
+    <div class="chead"><span class="lbl" id="cCat"></span><span class="val" id="cVal"></span><span class="sp"></span><div class="timer hidden" id="cTimer"><div class="bar"><i id="tBar"></i></div><span class="t" id="tLeft">30</span><button id="tPause" aria-label="Pause the timer">Pause</button><button id="tMinus" aria-label="Take away 10 seconds">-10</button><button id="tPlus" aria-label="Add 10 seconds">+10</button><button id="tRestart" aria-label="Start the timer again">Restart</button></div><span class="ic" id="cIcons" style="display:flex;gap:8px"></span></div>
+    <div class="bonus hidden" id="cBonus"><span class="bi" data-ic="FaBus"></span>Bus bonus! This one is worth double points.</div>
+    <div id="cSnip"></div>
+    <div class="words hidden" id="cLine"></div>
+    <div class="q" id="qText"></div>
+    <div class="opts" id="cOpts"></div>
+    <div class="cfoot">
+      <div class="fb" id="cFb" aria-live="polite"></div>
+      <button class="btn" id="revealBtn">No one knows</button>
+      <button class="btn main hidden" id="backBtn">Back to the board</button>
+    </div>
+    <div class="award hidden" id="award"></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="notes" role="dialog" aria-modal="true" aria-labelledby="notesH">
+  <div class="card">
+    <h2 id="notesH" style="color:var(--green);font-size:36px">Quick notes</h2>
+    <div class="notes" id="notesBody"></div>
+    <button class="btn main" id="notesClose">Close</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="tset" role="dialog" aria-modal="true" aria-labelledby="tsetH">
+  <div class="card" style="width:min(700px,100%)">
+    <h2 id="tsetH" style="color:var(--green);font-size:34px">Timer</h2>
+    <p style="font-size:20px">How long do players have for each question?</p>
+    <div class="setrow" id="tsetRow" style="margin-top:6px"></div>
+    <div style="margin-top:22px"><button class="btn main" id="tsetClose">Done</button></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="msg" role="dialog" aria-modal="true" aria-labelledby="msgH">
+  <div class="card big" id="msgBody"></div>
+</div>
+
+<script>
+const DATA = {"meta":{"title":"Look How Far Board","sub":"Lesson 6 revision game: look how far we've come","lesson":"Lesson 6","file":"VU23562_Lesson_6_Look_How_Far_Jeopardy.html"},"notes":"<div class=\"note\"><h4>Five tenses</h4><p>The library opens at 9 am. (habit, fact)</p><p>Look! The bus is coming. (now)</p><p>I went there last Saturday. (finished time)</p><p>I'm going to see the lights. (plan)</p><p>I've been there twice. I've lived here since 2021. (until now)</p></div><div class=\"note\"><h4>Where is it?</h4><p>at 8 Falcon Street · on Falcon Street · in Crows Nest</p><p>next to · opposite · between · on the corner of</p><p>Address: number, street, suburb, state, postcode</p></div><div class=\"note\"><h4>Compare and say it</h4><p>cheap → cheaper → the cheapest</p><p>convenient → more convenient → the most convenient</p><p>Postcode 2065: two-oh-six-five. 77: double seven. @: at. 000: triple zero.</p><p>fifTEEN, but FIFty</p></div><div class=\"note\"><h4>Five conversation techniques</h4><p>Keep it going with a question.</p><p>Show you're interested.</p><p>Check you understand.</p><p>Point and explain.</p><p>Answer, then add more.</p></div>","snips":{"strip":"<h4>Shops on Military Road, Neutral Bay (practice)</h4><div class=\"wrap\"><table><tr><td>Bakery</td><td>Chemist</td><td>Bank</td></tr><tr><th colspan=\"3\" style=\"text-align:center\">Military Road</th></tr><tr><td>Park</td><td>Library</td><td>Gym</td></tr></table></div><div class=\"cap\">North is at the top. The road is real. The places are for practice.</div>","timetable":"<h4>Route 299 Harbour Hopper (practice timetable)</h4><div class=\"wrap\"><table><tr><th>Stop</th><th>Morning bus</th></tr><tr><td>St Leonards</td><td>9:05</td></tr><tr><td>Crows Nest</td><td>9:11</td></tr><tr><td>North Sydney</td><td>9:20</td></tr><tr><td>Milsons Point</td><td>9:32</td></tr></table></div><div class=\"cap\">The suburbs are real. The bus is for practice.</div>","lights":"<h4>Neutral Bay to the Christmas lights in the city (practice)</h4><div class=\"wrap\"><table><tr><th>Way</th><th>Time</th><th>Cost</th></tr><tr><td>Ferry</td><td>15 minutes</td><td>$7</td></tr><tr><td>Bus</td><td>25 minutes</td><td>$4</td></tr><tr><td>Car</td><td>20 minutes</td><td>$30 parking</td></tr></table></div>","hall":"<h4>Kirribilli Community Hall (practice notice)</h4><p style=\"margin:.1rem 0\">Office: Monday to Thursday, 9 am to 3 pm.<br>Holidays: closed from 23 December to 5 January.<br>Yoga: Wednesdays at 6 pm. $10, concession $7. No booking, just drop in.</p>"},"rounds":[{"name":"Round 1","values":[100,200,300,400,500],"cats":[{"t":"Expressions","icons":[],"clues":[{"q":"The café is next to Coco's bus stop. It is useful and easy to get to. What can Coco say?","opts":["It's packed.","It's handy.","It's a pain."],"ok":1},{"q":"Cici's flat is a short walk from the station. Which expression fits?","opts":["a fair way from here","a stone's throw","out of the way"],"ok":1},{"q":"Joanne wants to try aqua fitness for the first time. Joanne wants to ...","opts":["jot it down","keep an eye out for it","give it a go"],"ok":2},{"q":"The bus was very, very full this morning. It was ...","opts":["flat out","sorted","chockers"],"ok":2},{"q":"The class starts at 9 am exactly. It starts at 9 ...","opts":["after hours","on the dot","every now and then"],"ok":1}]},{"t":"Say it","icons":[],"clues":[{"q":"Which syllable is strong in \"library\"?","opts":["li · BRA · ry","LI · bra · ry","li · bra · RY"],"ok":1},{"q":"How do you say the postcode 2060?","opts":["two-oh-six-oh","twenty sixty","two thousand and sixty"],"ok":0},{"q":"In an email, how do you say @?","opts":["dot","dash","at"],"ok":2},{"q":"Which number is strong at the END?","opts":["fifty","forty","fifteen"],"ok":2},{"q":"How do you say the phone number 5550 7744?","opts":["five-five-five-oh, double seven, double four","fifty-five fifty, seventy-seven forty-four","five thousand five hundred and fifty, seven seven four four"],"ok":0}]},{"t":"Grammar toolbox","icons":[],"clues":[{"q":"Look! The ferry ______ now.","opts":["is coming","was coming","came"],"ok":0},{"q":"Rachel ______ to the book swap last Saturday.","opts":["has been","went","goes"],"ok":1},{"q":"Liu ______ in Crows Nest since 2022.","opts":["is living","has lived","lived"],"ok":1},{"q":"Next week we ______ the Christmas lights.","opts":["are going to see","saw","have seen"],"ok":0},{"q":"______ you ever ______ to Luna Park?","opts":["Do ... go","Are ... going","Have ... been"],"ok":2}]},{"t":"Home and map","icons":[],"clues":[{"q":"Which address is in the correct order?","opts":["Crows Nest, 8 Falcon Street, 2065 NSW","NSW 2065, Crows Nest, 8 Falcon Street","8 Falcon Street, Crows Nest NSW 2065"],"ok":2},{"q":"On a map, \"Rd\" means ...","opts":["Ridge","Road","Rise"],"ok":1},{"q":"Neutral Bay is in which local council area?","opts":["Mosman Council","North Sydney Council","Willoughby City Council"],"ok":1},{"q":"Look at the map. The chemist is ______ the bakery and the bank.","opts":["between","opposite","behind"],"ok":0,"snip":"strip"},{"q":"Look at the map. The library is ______ the chemist.","opts":["next to","between","opposite"],"ok":2,"snip":"strip"}]},{"t":"Keep it going","icons":["speak"],"clues":[{"q":"Keep it going with a question. What can you say?","opts":["Oh, nice. Do you like it there?","OK. See you later then, bye.","I live in Ryde."],"ok":0,"line":"Tifa: \"I'm living in Waverton now.\""},{"q":"Show you're interested. What can you say?","opts":["Really? How was it?","Pickleball is a sport.","I don't know it."],"ok":0,"line":"Chris: \"I tried pickleball on Saturday.\""},{"q":"Check you understand. What can you say?","opts":["Yes, it's a very fair pool for swimming.","The pool is open.","Sorry, do you mean it's far?"],"ok":2,"line":"Yuko: \"The pool's a fair way from here.\""},{"q":"Answer, then add more. Which is the best answer?","opts":["Yes, I do.","The library is good.","Yes, every week. I borrow DVDs."],"ok":2,"line":"Scarlett: \"Do you go to the library often?\""},{"q":"Sunny shows a classmate a map on a phone. Point and explain. What can Sunny say?","opts":["Look, here it is. This is my street.","My street is a street.","Here is it, look my street."],"ok":0}]}]},{"name":"Double board","values":[200,400,600,800,1000],"cats":[{"t":"Expressions in action","icons":[],"clues":[{"q":"What does Julia mean?","opts":["The clinic is closed now.","The clinic is very, very busy.","The clinic is open late."],"ok":0,"line":"Coco: \"Can I call the clinic now?\"  Julia: \"No. It's after hours.\""},{"q":"What does Meryl want?","opts":["Write it quickly.","Say it again.","Look it up online."],"ok":0,"line":"Meryl: \"Jot it down, so you don't forget.\""},{"q":"What does Alan want to do?","opts":["find the café on a map","go and see if the café is good","tell everyone about the café"],"ok":1,"line":"Alan: \"Let's suss out the new café first.\""},{"q":"What happened?","opts":["Nick waited at the bus stop.","Nick waited on the phone.","Nick called ten people."],"ok":1,"line":"Nick: \"The receptionist put me on hold for ten minutes!\""},{"q":"Which sentence uses the expression correctly?","opts":["The shops are a fair way, so I walk there in two minutes.","The bus is chockers, so I get a seat easily.","The shops are right on my doorstep, so I walk there."],"ok":2}]},{"t":"Fix it","icons":[],"clues":[{"q":"Which sentence is correct?","opts":["The library open at 9 am.","The library is opens at 9 am.","The library opens at 9 am."],"ok":2},{"q":"Which sentence is correct?","opts":["I've lived here for three years.","I live here for three years.","I've lived here since three years."],"ok":0},{"q":"Which sentence is correct?","opts":["The metro is more fast than the bus.","The metro is fastest than the bus.","The metro is faster than the bus."],"ok":2},{"q":"Which question is correct?","opts":["How often you go to the pool?","How often does you go to the pool?","How often do you go to the pool?"],"ok":2},{"q":"Which sentence is correct?","opts":["Last December I went to the carols.","Last December I have been to the carols.","Last December I go to the carols."],"ok":0}]},{"t":"Getting around","icons":[],"clues":[{"q":"Who travels free on Sydney public transport?","opts":["children under 4","children under 12","everyone on Sundays"],"ok":0},{"q":"You tap on the bus with your bank card. Which fare do you pay?","opts":["a child fare","an adult fare","a concession fare"],"ok":1},{"q":"How long does the bus take from St Leonards to Milsons Point?","opts":["27 minutes","32 minutes","17 minutes"],"ok":0,"snip":"timetable"},{"q":"Which way is the cheapest?","opts":["the bus","the ferry","the car"],"ok":0,"snip":"lights"},{"q":"Which sentence is right?","opts":["The bus is faster than the ferry, and it's cheaper.","The ferry is faster than the bus, but the bus is cheaper.","The car is the cheapest way."],"ok":1,"snip":"lights"}]},{"t":"What's out there","icons":[],"clues":[{"q":"A JP signs your form. What is it?","opts":["a recreation activity","a community service","a business"],"ok":1},{"q":"Which one is a recreation activity?","opts":["a walking group","a medical centre","a supermarket"],"ok":0},{"q":"Can you visit the office on Friday?","opts":["Yes, from 9 am to 3 pm.","Yes, but only in January.","No. It's open Monday to Thursday."],"ok":2,"snip":"hall"},{"q":"Jojo has a concession card. How much is yoga?","opts":["$10","$3","$7"],"ok":2,"snip":"hall"},{"q":"You want yoga on 30 December. What is the best answer?","opts":["Yoga is on at 6 pm.","The hall is closed then.","You need to book yoga online."],"ok":1,"snip":"hall"}]},{"t":"On the phone","icons":["speak"],"clues":[{"q":"Which question is the most polite?","opts":["Tell me your opening hours.","Could you tell me your opening hours?","Hey, what are your opening hours today?"],"ok":1},{"q":"You did not hear the time clearly. What can you say?","opts":["What? Say it again! I can't hear you!","9:15 is wrong.","Sorry, did you say 9:15 or 9:50?"],"ok":2},{"q":"What is the best reply?","opts":["No, I'm holding it.","Yes, on the dot.","Sure, no worries."],"ok":2,"line":"Staff: \"Could you hold for a moment, please?\""},{"q":"You call the front desk for information. What type of source is it?","opts":["a website","a person","a map app"],"ok":1},{"q":"How do you say 000?","opts":["oh-oh-oh","zero hundred","triple zero"],"ok":2,"line":"Message: \"We're closed now. In an emergency, call 000.\""}]}]}]};
+const ICONS = {"FaHeadphones":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" focusable=\"false\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M256 32C114.52 32 0 146.496 0 288v48a32 32 0 0 0 17.689 28.622l14.383 7.191C34.083 431.903 83.421 480 144 480h24c13.255 0 24-10.745 24-24V280c0-13.255-10.745-24-24-24h-24c-31.342 0-59.671 12.879-80 33.627V288c0-105.869 86.131-192 192-192s192 86.131 192 192v1.627C427.671 268.879 399.342 256 368 256h-24c-13.255 0-24 10.745-24 24v176c0 13.255 10.745 24 24 24h24c60.579 0 109.917-48.098 111.928-108.187l14.382-7.191A32 32 0 0 0 512 336v-48c0-141.479-114.496-256-256-256z\"></path></svg>","FaComments":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" focusable=\"false\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M416 192c0-88.4-93.1-160-208-160S0 103.6 0 192c0 34.3 14.1 65.9 38 92-13.4 30.2-35.5 54.2-35.8 54.5-2.2 2.3-2.8 5.7-1.5 8.7S4.8 352 8 352c36.6 0 66.9-12.3 88.7-25 32.2 15.7 70.3 25 111.3 25 114.9 0 208-71.6 208-160zm122 220c23.9-26 38-57.7 38-92 0-66.9-53.5-124.2-129.3-148.1.9 6.6 1.3 13.3 1.3 20.1 0 105.9-107.7 192-240 192-10.8 0-21.3-.8-31.7-1.9C207.8 439.6 281.8 480 368 480c41 0 79.1-9.2 111.3-25 21.8 12.7 52.1 25 88.7 25 3.2 0 6.1-1.9 7.3-4.8 1.3-2.9.7-6.3-1.5-8.7-.3-.3-22.4-24.2-35.8-54.5z\"></path></svg>","FaBus":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" focusable=\"false\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M488 128h-8V80c0-44.8-99.2-80-224-80S32 35.2 32 80v48h-8c-13.25 0-24 10.74-24 24v80c0 13.25 10.75 24 24 24h8v160c0 17.67 14.33 32 32 32v32c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32v-32h192v32c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32v-32h6.4c16 0 25.6-12.8 25.6-25.6V256h8c13.25 0 24-10.75 24-24v-80c0-13.26-10.75-24-24-24zM112 400c-17.67 0-32-14.33-32-32s14.33-32 32-32 32 14.33 32 32-14.33 32-32 32zm16-112c-17.67 0-32-14.33-32-32V128c0-17.67 14.33-32 32-32h256c17.67 0 32 14.33 32 32v128c0 17.67-14.33 32-32 32H128zm272 112c-17.67 0-32-14.33-32-32s14.33-32 32-32 32 14.33 32 32-14.33 32-32 32z\"></path></svg>","FaPlay":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" focusable=\"false\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z\"></path></svg>","FaRedo":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" focusable=\"false\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M500.33 0h-47.41a12 12 0 0 0-12 12.57l4 82.76A247.42 247.42 0 0 0 256 8C119.34 8 7.9 119.53 8 256.19 8.1 393.07 119.1 504 256 504a247.1 247.1 0 0 0 166.18-63.91 12 12 0 0 0 .48-17.43l-34-34a12 12 0 0 0-16.38-.55A176 176 0 1 1 402.1 157.8l-101.53-4.87a12 12 0 0 0-12.57 12v47.41a12 12 0 0 0 12 12h200.33a12 12 0 0 0 12-12V12a12 12 0 0 0-12-12z\"></path></svg>","FaStar":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" focusable=\"false\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M259.3 17.8L194 150.2 47.9 171.5c-26.2 3.8-36.7 36.1-17.7 54.6l105.7 103-25 145.5c-4.5 26.3 23.2 46 46.4 33.7L288 439.6l130.7 68.7c23.2 12.2 50.9-7.4 46.4-33.7l-25-145.5 105.7-103c19-18.5 8.5-50.8-17.7-54.6L382 150.2 316.7 17.8c-11.7-23.6-45.6-23.9-57.4 0z\"></path></svg>","FaCheck":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" focusable=\"false\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z\"></path></svg>","FaBookOpen":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" focusable=\"false\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M542.22 32.05c-54.8 3.11-163.72 14.43-230.96 55.59-4.64 2.84-7.27 7.89-7.27 13.17v363.87c0 11.55 12.63 18.85 23.28 13.49 69.18-34.82 169.23-44.32 218.7-46.92 16.89-.89 30.02-14.43 30.02-30.66V62.75c.01-17.71-15.35-31.74-33.77-30.7zM264.73 87.64C197.5 46.48 88.58 35.17 33.78 32.05 15.36 31.01 0 45.04 0 62.75V400.6c0 16.24 13.13 29.78 30.02 30.66 49.49 2.6 149.59 12.11 218.77 46.95 10.62 5.35 23.21-1.94 23.21-13.46V100.63c0-5.29-2.62-10.14-7.27-12.99z\"></path></svg>","FaTimes":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 352 512\" aria-hidden=\"true\" focusable=\"false\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z\"></path></svg>"};
+const $ = id => document.getElementById(id);
+$('gTitle').textContent = DATA.meta.title; $('gSub').textContent = DATA.meta.sub; $('notesBody').innerHTML = DATA.notes;
+const NAMES = ['Kookaburras','Koalas','Wombats','Possums','Echidnas','Magpies','Cockatoos','Platypuses'];
+const S = { secs: 30, step: 100, mode: 0, teams: [], turn: 0, round: 0, used: [new Set(), new Set()], bonus: [], right: 0, asked: 0, cur: null, done: false };
+const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TIMES = [0, 15, 20, 30, 45, 60, 90, 120];
+const tLabel = n => n ? (n <= 90 ? n + ' sec' : (n / 60) + ' min') : 'Off';
+const icon = (n, cls) => '<span class="' + (cls || '') + '">' + ICONS[n] + '</span>';
+function fillIcons(root){ (root || document).querySelectorAll('[data-ic]').forEach(e => { if (!e.dataset.done){ e.innerHTML = ICONS[e.dataset.ic]; e.dataset.done = 1; } }); }
+
+function routeHTML(){ return '<div class="line"></div><div class="dots">' + '<span class="dot"></span>'.repeat(7) + '</div><div class="bus">' + ICONS.FaBus + '</div>'; }
+$('setupRoute').innerHTML = routeHTML(); $('boardRoute').innerHTML = routeHTML();
+$('setupRoute').querySelector('.bus').style.left = '43%';
+$('goIc').innerHTML = ICONS.FaBus;
+
+/* setup */
+const choices = [[0,'Just me'],[2,'2 teams'],[3,'3 teams'],[4,'4 teams']];
+let pick = 2; let nameIdx = [0,1,2,3]; const typed = nameIdx.map(i => NAMES[i]);
+function drawSetup(){
+  $('who').innerHTML = choices.map(([n,t]) => '<button data-n="' + n + '" aria-pressed="' + (n === pick) + '">' + t + '</button>').join('');
+  $('who').querySelectorAll('button').forEach(b => b.onclick = () => { pick = +b.dataset.n; drawSetup(); });
+  if (!pick){ $('names').innerHTML = '<div class="hint">You play on your own. Choose an answer for each question.</div>'; return; }
+  $('names').innerHTML = '<div class="hint">Type a team name, or tap "Pick a name".</div>' + typed.slice(0, pick).map((nm, i) => '<div class="tname"><span class="n">' + (i + 1) + '</span><input type="text" maxlength="20" data-i="' + i + '" value="' + esc(nm) + '" aria-label="Team ' + (i + 1) + ' name"><button class="pickn" data-p="' + i + '">Pick a name</button></div>').join('');
+  $('names').querySelectorAll('input').forEach(inp => inp.oninput = () => { typed[+inp.dataset.i] = inp.value; });
+  $('names').querySelectorAll('.pickn').forEach(b => b.onclick = () => { const i = +b.dataset.p; let n = nameIdx[i];
+    do { n = (n + 1) % NAMES.length; } while (typed.slice(0, pick).some((x, j) => j !== i && x === NAMES[n])); nameIdx[i] = n; typed[i] = NAMES[n]; drawSetup(); $('names').querySelector('[data-p="' + i + '"]').focus(); });
+}
+function drawTimerChoices(el){
+  el.innerHTML = (el.id === 'timerRow' ? '<span class="lab">Timer:</span>' : '') + TIMES.map(n => '<button class="chip" data-t="' + n + '" aria-pressed="' + (n === S.secs) + '">' + tLabel(n) + '</button>').join('');
+  el.querySelectorAll('.chip').forEach(b => b.onclick = () => { S.secs = +b.dataset.t; drawTimerChoices(el); timerBtnLabel(); });
+}
+function timerBtnLabel(){ $('timerBtn').textContent = 'Timer: ' + tLabel(S.secs).toLowerCase(); }
+drawSetup(); drawTimerChoices($('timerRow')); timerBtnLabel();
+$('start').onclick = () => {
+  S.mode = pick; S.teams = pick ? typed.slice(0, pick).map((t, i) => ({ name: t.trim() || ('Team ' + (i + 1)), pts: 0 })) : [{ name: 'Your score', pts: 0 }];
+  S.turn = 0; S.round = 0; S.used = [new Set(), new Set()]; S.right = 0; S.asked = 0; S.done = false;
+  S.bonus = DATA.rounds.map(() => { const c = Math.floor(Math.random() * 5), r = 1 + Math.floor(Math.random() * 4); return c + ':' + r; });
+  $('setup').classList.add('hidden'); $('board').classList.remove('hidden'); drawBoard();
+};
+
+/* board */
+function drawBoard(){
+  const R = DATA.rounds[S.round];
+  $('roundName').textContent = R.name;
+  $('nextBtn').classList.toggle('hidden', S.round !== 0);
+  let h = R.cats.map(c => '<div class="cat"><h3>' + c.t + '</h3>' + (c.icons.length ? '<div class="ic">' + c.icons.map(k => '<span class="badge" title="' + (k === 'listen' ? 'Listening' : 'Speaking') + '">' + ICONS[k === 'listen' ? 'FaHeadphones' : 'FaComments'] + '</span>').join('') + '</div>' : '') + '</div>').join('');
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++){ const k = c + ':' + r; const u = S.used[S.round].has(k);
+    h += '<button class="tile" data-k="' + k + '"' + (u ? ' disabled aria-label="done">' + ICONS.FaCheck : ' aria-label="' + R.cats[c].t + ' for ' + R.values[r] + '">' + R.values[r]) + '</button>'; }
+  $('grid').innerHTML = h;
+  $('grid').querySelectorAll('.tile:not(:disabled)').forEach(b => b.onclick = () => openClue(b.dataset.k));
+  drawScores(); moveBus();
+}
+function moveBus(){ const n = S.used[S.round].size; const pct = n / 25;
+  const b = $('boardRoute').querySelector('.bus'); b.style.left = 'calc(28px + (100% - 56px) * ' + pct + ')';
+  $('boardRoute').querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('done', i / 6 <= pct && n > 0)); }
+function drawScores(){
+  $('stepbar').innerHTML = S.mode ? 'Teacher points:' + [50, 100, 200, 500].map(n => '<button class="chip" data-s="' + n + '" aria-pressed="' + (n === S.step) + '">' + n + '</button>').join('') : '';
+  $('stepbar').querySelectorAll('[data-s]').forEach(b => b.onclick = () => { S.step = +b.dataset.s; drawScores(); });
+  $('scores').innerHTML = S.teams.map((t, i) => '<div class="team' + (S.mode && i === S.turn ? ' turn' : '') + '"><div class="nm"><span class="bus">' + ICONS.FaBus + '</span>' + esc(t.name) + '</div><div class="pts" data-pts="' + i + '">' + t.pts + '</div>' +
+    (S.mode ? '<div class="adj"><button data-a="' + i + ':-' + S.step + '" aria-label="take ' + S.step + ' from ' + esc(t.name) + '">-' + S.step + '</button><button data-a="' + i + ':' + S.step + '" aria-label="give ' + S.step + ' to ' + esc(t.name) + '">+' + S.step + '</button></div>' : '<div class="line2" id="soloLine">' + S.right + ' right out of ' + S.asked + '</div>') + '</div>').join('');
+  $('scores').querySelectorAll('[data-a]').forEach(b => b.onclick = () => { const [i, v] = b.dataset.a.split(':').map(Number); S.teams[i].pts += v; drawScores(); });
+}
+
+/* clue */
+
+function snipHTML(k){ return DATA.snips && DATA.snips[k] ? '<div class="snip">' + DATA.snips[k] + '</div>' : ''; }
+function openClue(k){
+  const [c, r] = k.split(':').map(Number); const R = DATA.rounds[S.round], cat = R.cats[c], cl = cat.clues[r];
+  const bonus = S.bonus[S.round] === k; const pts = R.values[r] * (bonus ? 2 : 1);
+  S.cur = { k, cl, pts, answered: false };
+  $('cCat').textContent = cat.t; $('cVal').textContent = R.values[r];
+  $('cIcons').innerHTML = cat.icons.map(x => '<span class="badge" style="width:48px;height:48px;font-size:24px">' + ICONS[x === 'listen' ? 'FaHeadphones' : 'FaComments'] + '</span>').join('');
+  $('cBonus').classList.toggle('hidden', !bonus);
+  $('cSnip').innerHTML = (cl.snip || cat.snip) ? snipHTML(cl.snip || cat.snip) : '';
+  $('cLine').classList.toggle('hidden', !cl.line); $('cLine').textContent = cl.line ? cl.line : '';
+  $('qText').textContent = cl.q;
+  $('cOpts').innerHTML = cl.opts.map((o, i) => '<button class="opt" data-i="' + i + '"><span class="k">' + 'abc'[i] + '</span><span>' + o + '</span></button>').join('');
+  $('cOpts').querySelectorAll('.opt').forEach(b => b.onclick = () => answer(+b.dataset.i));
+  const who = S.mode ? S.teams[S.turn].name + ', it\'s your turn.' : '';
+  $('cFb').className = 'fb'; $('cFb').textContent = who;
+  $('revealBtn').textContent = S.mode ? 'No one knows' : 'I don\'t know';
+  $('revealBtn').classList.remove('hidden'); $('backBtn').classList.add('hidden');
+  $('award').classList.add('hidden');
+  $('clue').classList.remove('hidden'); fillIcons($('clue'));
+  startTimer();
+  $('cOpts').querySelector('.opt').focus();
+}
+function answer(i){
+  const cur = S.cur; if (!cur || cur.answered) return; cur.answered = true;
+  const ok = i === cur.cl.ok; const opts = $('cOpts').querySelectorAll('.opt');
+  opts.forEach((b, j) => { b.disabled = true; if (j === cur.cl.ok) b.classList.add('right'); else if (j === i) b.classList.add('wrong'); else b.classList.add('dim'); });
+  const t = S.teams[S.mode ? S.turn : 0];
+  if (ok){ t.pts += cur.pts; S.right++; }
+  if (i !== -1 || true) S.asked++;
+  const right = cur.cl.opts[cur.cl.ok];
+  $('cFb').className = 'fb ' + (ok ? 'good' : 'bad');
+  $('cFb').textContent = ok ? 'Right! +' + cur.pts + (S.mode ? ' for ' + t.name : '') : (i === -1 ? 'The answer is: ' + right : 'Not this time. The answer is: ' + right);
+  $('revealBtn').classList.add('hidden'); $('backBtn').classList.remove('hidden'); $('backBtn').focus();
+  stopTimer(); drawAward();
+}
+function drawAward(){
+  if (!S.mode){ $('award').classList.add('hidden'); return; }
+  const v = S.cur.pts;
+  $('award').innerHTML = '<span class="lab">Teacher: change points for this question (for example, another team answers)</span>' + S.teams.map((t, i) => '<span class="aw">' + esc(t.name) + ' <b data-ap="' + i + '">' + t.pts + '</b><button data-g="' + i + ':-' + v + '">-' + v + '</button><button data-g="' + i + ':' + v + '">+' + v + '</button></span>').join('');
+  $('award').querySelectorAll('[data-g]').forEach(b => b.onclick = () => { const [i, d] = b.dataset.g.split(':').map(Number); S.teams[i].pts += d; $('award').querySelector('[data-ap="' + i + '"]').textContent = S.teams[i].pts; });
+  $('award').classList.remove('hidden');
+}
+/* timer */
+const T = { left: 0, total: 0, id: null, paused: false };
+function startTimer(){ stopTimer(); $('cTimer').classList.toggle('hidden', !S.secs); if (!S.secs) return;
+  T.total = S.secs; T.left = S.secs; T.paused = false; $('tPause').textContent = 'Pause'; showTime(); T.id = setInterval(tick, 1000); }
+function stopTimer(){ if (T.id){ clearInterval(T.id); T.id = null; } }
+function tick(){ if (T.paused) return; T.left = Math.max(0, T.left - 1); showTime(); if (T.left === 0){ stopTimer(); timeUp(); } }
+function showTime(){ const m = Math.floor(T.left / 60), s2 = T.left % 60; $('tLeft').textContent = m ? m + ':' + String(s2).padStart(2, '0') : String(s2);
+  $('tBar').style.width = (T.total ? T.left / T.total * 100 : 0) + '%'; const el = $('cTimer'); el.classList.toggle('low', T.left <= 5); el.classList.toggle('up', T.left === 0); }
+function timeUp(){ $('tLeft').textContent = '0'; if (S.cur && !S.cur.answered){ $('cFb').className = 'fb bad'; $('cFb').textContent = 'Time\'s up! Choose an answer now, or tap ' + $('revealBtn').textContent + '.'; } beep(); }
+function beep(){ try { const a = new (window.AudioContext || window.webkitAudioContext)(); const o = a.createOscillator(), g = a.createGain(); o.frequency.value = 520; g.gain.value = .15; o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + .4); } catch (e) {} }
+$('tPause').onclick = () => { if (!T.left || !S.cur || S.cur.answered) return; T.paused = !T.paused; $('tPause').textContent = T.paused ? 'Go' : 'Pause'; if (!T.id && !T.paused) T.id = setInterval(tick, 1000); };
+$('tPlus').onclick = () => { T.left += 10; T.total = Math.max(T.total, T.left); if (!T.id && S.cur && !S.cur.answered){ T.paused = false; $('tPause').textContent = 'Pause'; T.id = setInterval(tick, 1000); } showTime(); };
+$('tMinus').onclick = () => { T.left = Math.max(0, T.left - 10); showTime(); if (T.left === 0 && T.id){ stopTimer(); timeUp(); } };
+$('tRestart').onclick = () => { if (S.cur && !S.cur.answered) startTimer(); };
+$('timerBtn').onclick = () => { drawTimerChoices($('tsetRow')); $('tset').classList.remove('hidden'); $('tsetRow').querySelector('[aria-pressed="true"]').focus(); };
+$('tsetClose').onclick = () => { $('tset').classList.add('hidden'); drawTimerChoices($('timerRow')); };
+$('revealBtn').onclick = () => answer(-1);
+$('backBtn').onclick = () => {
+  stopTimer();
+  S.used[S.round].add(S.cur.k); S.cur = null; $('clue').classList.add('hidden');
+  if (S.mode) S.turn = (S.turn + 1) % S.teams.length;
+  drawBoard();
+  if (S.used[S.round].size === 25){ if (S.round === 0) roundDone(); else finish(); }
+};
+
+/* rounds and end */
+function roundDone(){
+  msg('<h2>Round 1 is finished!</h2><p style="font-size:24px">Now for the Double board. Every question is worth double.</p><button class="btn main" id="mGo">Go to the Double board</button>', () => $('mGo').onclick = () => { closeMsg(); toRound2(); });
+}
+function toRound2(){ S.round = 1; drawBoard(); }
+$('nextBtn').onclick = () => msg('<h2>Go to the Double board?</h2><p style="font-size:24px">You can\'t come back to Round 1.</p><div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn main" id="mYes">Yes, let\'s go</button><button class="btn" id="mNo">Not yet</button></div>', () => { $('mYes').onclick = () => { closeMsg(); toRound2(); }; $('mNo').onclick = closeMsg; });
+$('finishBtn').onclick = () => msg('<h2>Finish the game now?</h2><div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn main" id="mYes">Yes, show the scores</button><button class="btn" id="mNo">Keep playing</button></div>', () => { $('mYes').onclick = () => { closeMsg(); finish(); }; $('mNo').onclick = closeMsg; });
+function finish(){
+  S.done = true; let h;
+  if (S.mode){
+    const r = S.teams.map(t => t).sort((a, b) => b.pts - a.pts); const top = r[0].pts;
+    h = '<h2>' + (r.filter(t => t.pts === top).length > 1 ? 'It\'s a tie at the top!' : 'Winner: ' + esc(r[0].name) + '!') + '</h2><div class="rank">' +
+      r.map(t => '<div class="' + (t.pts === top ? 'win' : '') + '">' + (t.pts === top ? '<span class="bi">' + ICONS.FaStar + '</span>' : '') + esc(t.name) + '<span class="p">' + t.pts + '</span></div>').join('') + '</div>';
+  } else {
+    const pct = S.asked ? Math.round(S.right / S.asked * 100) : 0;
+    const band = pct >= 90 ? 'Excellent. You know ' + DATA.meta.lesson + ' really well.' : pct >= 70 ? 'Great work. Check the Quick notes for the ones you missed.' : pct >= 50 ? 'Good start. Look at your worksheet again and play one more time.' : 'Keep going. Read ' + DATA.meta.lesson + ' again, then try the game again.';
+    h = '<h2>Your result</h2><div class="stat"><div><b>' + S.teams[0].pts + '</b>points</div><div><b>' + S.right + '/' + S.asked + '</b>right answers</div><div><b>' + pct + '%</b>correct</div></div><p style="font-size:24px;font-weight:bold;color:var(--green)">' + band + '</p>';
+  }
+  h += '<button class="btn main" id="mAgain">Play again</button>';
+  msg(h, () => $('mAgain').onclick = () => { closeMsg(); $('board').classList.add('hidden'); $('setup').classList.remove('hidden'); drawSetup(); });
+}
+function msg(h, after){ $('msgBody').innerHTML = h; $('msg').classList.remove('hidden'); after && after(); const b = $('msgBody').querySelector('button'); b && b.focus(); }
+function closeMsg(){ $('msg').classList.add('hidden'); }
+$('notesBtn').onclick = () => { $('notes').classList.remove('hidden'); $('notesClose').focus(); };
+$('notesClose').onclick = () => $('notes').classList.add('hidden');
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('notes').classList.contains('hidden')) $('notes').classList.add('hidden');
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'Escape' && !$('tset').classList.contains('hidden')) $('tset').classList.add('hidden');
+  if (!$('clue').classList.contains('hidden') && S.cur && !S.cur.answered && /^[abc123]$/i.test(e.key)) answer('abc123'.indexOf(e.key.toLowerCase()) % 3);
+});
+fillIcons();
+</script>
+</body>
+</html>
